@@ -1,17 +1,17 @@
 class CurrencyConverter {
     constructor() {
-        this.baseUrl = 'github';
+        this.baseUrl = "https://raw.githubusercontent.com/Merongk/Merongk.github.io/main/data.json";
         this.currencies = {};
         this.alerts = [];
         this.baseCurrency = '';
         this.init();
     }
 
-    async init() {
-        // const response = await fetch(`${this.baseUrl}${base}`);
-        // return await response.json();
-         }
-
+    async getCurrencyRates() {
+        const response = await fetch(`${this.baseUrl}`);
+        return await response.json();
+    }
+    
          async init(){ 
         const data = await this.getCurrencyRates();
         this.baseCurrency = data.base;
@@ -29,7 +29,7 @@ class CurrencyConverter {
         const label = document.getElementById('target-currency-label');
         label.textContent = `Target Currency in ${this.baseCurrency}`;
     }
-
+    
     populateCurrencySelectors() {
         const fromCurrency = document.getElementById('from-currency');
         const toCurrency = document.getElementById('to-currency');
@@ -60,7 +60,7 @@ class CurrencyConverter {
         document.getElementById('set-alert-btn').addEventListener('click', () => this.setCurrencyAlert());
     }
 
-    convertCurrency() {
+     convertCurrency() {
         const amount = document.getElementById('amount').value;
         const fromCurrency = document.getElementById('from-currency').value;
         const toCurrency = document.getElementById('to-currency').value;
@@ -68,7 +68,7 @@ class CurrencyConverter {
         const convertedAmount = amount * rate;
         document.getElementById('conversion-result').textContent = `${amount} ${fromCurrency} = ${convertedAmount.toFixed(2)} ${toCurrency}`;
     }
-
+    
     addCurrencyRate() {
         const targetCurrency = document.getElementById('target-currency').value.toUpperCase();
         const rate = parseFloat(document.getElementById('rate').value);
@@ -81,16 +81,20 @@ class CurrencyConverter {
     }
 
     displayCurrencies(filter = '') {
-        const currencyList = document.getElementById('currency-list');
-        currencyList.innerHTML = '';
-        for (const currencyPair in this.currencies) {
-            if (currencyPair.toLowerCase().includes(filter.toLowerCase()) || this.currencies[currencyPair].toString().includes(filter)) {
-                const li = document.createElement('li');
-                li.textContent = `${currencyPair}: ${this.currencies[currencyPair].toFixed(2)}`;
-                currencyList.appendChild(li);
-            }
+    const currencyList = document.getElementById('currency-list');
+    currencyList.innerHTML = '';
+    for (const currencyPair in this.currencies) {
+        if (
+            currencyPair.toLowerCase().includes(filter.toLowerCase()) || 
+            this.currencies[currencyPair].toString().includes(filter)
+        ) {
+            const li = document.createElement('li');
+            li.textContent = `${currencyPair}: ${this.currencies[currencyPair].toFixed(2)}`;
+            currencyList.appendChild(li);
         }
     }
+}
+
 
     filterRates() {
         const filter = document.getElementById('filter-input').value;
@@ -113,37 +117,40 @@ class CurrencyConverter {
         }
     }
 
-    setCurrencyAlert() {
-        const fromCurrency = document.getElementById('alert-from-currency').value;
-        const targetRate = parseFloat(document.getElementById('alert-rate').value);
+   setCurrencyAlert() {
+    const fromCurrency = document.getElementById('alert-from-currency').value;
+    const targetRate = parseFloat(document.getElementById('alert-rate').value);
 
-        if (fromCurrency && !isNaN(targetRate)) {
-            this.alerts.push({ fromCurrency, targetRate });
-            document.getElementById('alert-status').textContent = `Alert set for ${fromCurrency} reaching ${targetRate}`;
-        }
-    }
-
-    async checkCurrencyAlerts() {
-        const data = await this.getCurrencyRates();
-        const rates = data.rates;
-
-        this.alerts.forEach((alert, index, object) => {
-            const { fromCurrency, targetRate } = alert;
-            if (rates[fromCurrency] && rates[fromCurrency] >= targetRate) {
-                this.showAlert(`Alert: ${fromCurrency} has reached ${targetRate} ${this.baseCurrency}!`);
-                object.splice(index, 1);
-            }
-        });
-    }
-
-    showAlert(message) {
-        const alertBanner = document.getElementById('alert-banner');
-        alertBanner.textContent = message;
-        alertBanner.style.display = 'block';
-        setTimeout(() => alertBanner.style.display = 'none', 10000); // Hide after 10 seconds
+    if (fromCurrency && !isNaN(targetRate)) {
+        this.alerts.push({ fromCurrency, targetRate });
+        document.getElementById('alert-status').textContent = `Alert set for ${fromCurrency} reaching ${targetRate}`;
     }
 }
 
+    async checkCurrencyAlerts() {
+    const data = await this.getCurrencyRates();
+    const rates = data.rates;
+
+    this.alerts.forEach((alert, index, object) => {
+        const { fromCurrency, targetRate } = alert;
+        if (rates[fromCurrency] && rates[fromCurrency] >= targetRate) {
+            this.showAlert(`Alert: ${fromCurrency} has reached ${targetRate} ${this.baseCurrency}!`);
+            object.splice(index, 1);
+        }
+    });
+}
+
+   showAlert(message) {
+        const alertBanner = document.getElementById('alert-banner');
+        alertBanner.textContent = message; // Set the alert message
+        alertBanner.style.display = 'block'; // Show the alert banner
+        setTimeout(() => {
+            alertBanner.style.display = 'none'; // Hide after 10 seconds
+        }, 10000);
+    }
+}
+
+// Wait for the DOM to load before creating an instance of CurrencyConverter
 document.addEventListener('DOMContentLoaded', () => {
     new CurrencyConverter();
 });
